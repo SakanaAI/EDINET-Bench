@@ -4,6 +4,7 @@ import datasets
 import json
 import os
 import pandas as pd
+from datasets import ClassLabel
 from enum import Enum
 from functools import partial
 from scipy.special import softmax
@@ -78,14 +79,19 @@ class CSVLogger(TrainerCallback):
 
 
 def assign_industry_labels(dataset):
-    dataset_train = dataset["train"]
     label_encoder = LabelEncoder()
-    label_encoder.fit(dataset_train["industry"])
+    label_encoder.fit(dataset["train"]["industry"])
+    class_names = list(label_encoder.classes_)
 
     def encode_industry(batch):
         return {"label": label_encoder.transform(batch["industry"])}
 
-    dataset = dataset.map(encode_industry, batched=True)
+    for split_name in dataset.keys():
+        dataset[split_name] = dataset[split_name].map(encode_industry, batched=True)
+        new_features = dataset[split_name].features.copy()
+        new_features["label"] = ClassLabel(names=class_names)
+        dataset[split_name] = dataset[split_name].cast(new_features)
+
     return dataset
 
 
