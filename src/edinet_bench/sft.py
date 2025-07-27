@@ -196,7 +196,8 @@ def main(args):
     if args.checkpoint_dir:
         model = AutoModelForSequenceClassification.from_pretrained(args.checkpoint_dir)
     else:
-        model = AutoModelForSequenceClassification.from_pretrained(args.model_name, num_labels=2)
+        num_classes = 16 if args.dataset == "industry_prediction" else 2
+        model = AutoModelForSequenceClassification.from_pretrained(args.model_name, num_labels=num_classes)
         model.resize_token_embeddings(len(tokenizer))
         model.config.pad_token_id = tokenizer.pad_token_id
 
