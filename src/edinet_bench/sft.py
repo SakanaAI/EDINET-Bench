@@ -16,6 +16,7 @@ from sklearn.metrics import (
     matthews_corrcoef,
 )
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
@@ -74,6 +75,18 @@ class CSVLogger(TrainerCallback):
                 metrics["eval_auroc"],
                 metrics["eval_mcc"],
             ])
+
+
+def assign_industry_labels(dataset):
+    dataset_train = dataset["train"]
+    label_encoder = LabelEncoder()
+    label_encoder.fit(dataset_train["industry"])
+
+    def encode_industry(batch):
+        return {"label": label_encoder.transform(batch["industry"])}
+
+    dataset = dataset.map(encode_industry, batched=True)
+    return dataset
 
 
 def preprocess_text(example, sheets):
@@ -188,6 +201,7 @@ def main(args):
     else:
         assert args.dataset_name == DatasetName.INDUSTRY_PREDICTION
         dataset = datasets.load_dataset("SakanaAI/EDINET-Bench", "industry_prediction")
+        dataset = assign_industry_labels(dataset)
         dataset = dataset.map(partial(preprocess_text, sheets=args.sheets))
         dataset_train, dataset_val, dataset_test = split_earnings_forecast_dataset(dataset, args.train_year_cutoff)
 
