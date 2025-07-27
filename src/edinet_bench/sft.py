@@ -143,8 +143,14 @@ def split_earnings_forecast_dataset(dataset, train_year_cutoff):
 
 
 def split_industry_prediction_dataset(dataset, train_ratio):
-    dataset_trainval = dataset["train"]
-    dataset_test = dataset["test"]
+    dataset = dataset["train"]
+    dataset = dataset.train_test_split(
+        test_size=1 - train_ratio,
+        seed=42,
+        stratified=True,
+        stratify_by_column="label",
+    )
+    dataset_trainval, dataset_test = dataset["train"], dataset["test"]
     dataset_trainval = dataset_trainval.train_test_split(
         test_size=1 - train_ratio,
         seed=42,
