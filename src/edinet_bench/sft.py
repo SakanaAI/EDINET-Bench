@@ -203,7 +203,7 @@ def main(args):
         dataset = datasets.load_dataset("SakanaAI/EDINET-Bench", "industry_prediction")
         dataset = assign_industry_labels(dataset)
         dataset = dataset.map(partial(preprocess_text, sheets=args.sheets))
-        dataset_train, dataset_val, dataset_test = split_earnings_forecast_dataset(dataset, args.train_year_cutoff)
+        dataset_train, dataset_val, dataset_test = split_industry_prediction_dataset(dataset, args.train_year_cutoff)
 
     def tokenize_function(examples):
         return tokenizer(examples["text"], padding="max_length", truncation=True, max_length=args.max_seq_length)
