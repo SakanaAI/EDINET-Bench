@@ -165,15 +165,17 @@ def split_industry_prediction_dataset(dataset, train_ratio):
     return dataset_train, dataset_val, dataset_test
 
 
-def compute_metrics(pred):
+def compute_metrics(pred, is_binary):
     labels = pred.label_ids
     pred_class = pred.predictions.argmax(-1)
     pred_prob = softmax(pred.predictions, axis=1)
 
+    average_type = "binary" if is_binary else "macro"
+
     accuracy = accuracy_score(labels, pred_class)
-    precision = precision_score(labels, pred_class)
-    recall = recall_score(labels, pred_class)
-    f1 = f1_score(labels, pred_class)
+    precision = precision_score(labels, pred_class, average=average_type)
+    recall = recall_score(labels, pred_class, average=average_type)
+    f1 = f1_score(labels, pred_class, average=average_type)
     mcc = matthews_corrcoef(labels, pred_class)
     auroc = roc_auc_score(labels, pred_prob[:, 1])
 
@@ -193,10 +195,16 @@ def main(args):
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
+    if args.dataset_name == DatasetName.INDUSTRY_PREDICTION:
+        num_classes = 16
+        compute_metrics_p = partial(compute_metrics, is_binary=False)
+    else:
+        num_classes = 2
+        compute_metrics_p = partial(compute_metrics, is_binary=True)
+
     if args.checkpoint_dir:
         model = AutoModelForSequenceClassification.from_pretrained(args.checkpoint_dir)
     else:
-        num_classes = 16 if args.dataset_name == DatasetName.INDUSTRY_PREDICTION else 2
         model = AutoModelForSequenceClassification.from_pretrained(args.model_name, num_labels=num_classes)
         model.resize_token_embeddings(len(tokenizer))
         model.config.pad_token_id = tokenizer.pad_token_id
@@ -249,7 +257,7 @@ def main(args):
         data_collator=data_collator,
         train_dataset=dataset_train,
         eval_dataset=dataset_val,
-        compute_metrics=compute_metrics,
+        compute_metrics=compute_metrics_p,
         callbacks=[CSVLogger(args.results_dir)],
     )
     if not args.test_only:
