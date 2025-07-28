@@ -177,7 +177,7 @@ def compute_metrics(pred, is_binary):
     recall = recall_score(labels, pred_class, average=average_type)
     f1 = f1_score(labels, pred_class, average=average_type)
     mcc = matthews_corrcoef(labels, pred_class)
-    auroc = roc_auc_score(labels, pred_prob[:, 1])
+    auroc = roc_auc_score(labels, pred_prob[:, 1]) if is_binary else float("nan")
 
     return {
         "eval_accuracy": accuracy,
@@ -219,7 +219,11 @@ def main(args):
         dataset_train, dataset_val, dataset_test = split_earnings_forecast_dataset(dataset, args.train_year_cutoff)
     else:
         assert args.dataset_name == DatasetName.INDUSTRY_PREDICTION
-        dataset = datasets.load_dataset("SakanaAI/EDINET-Bench", "industry_prediction")
+        # dataset = datasets.load_dataset("SakanaAI/EDINET-Bench", "industry_prediction")
+        dataset = datasets.DatasetDict({
+            "train": datasets.Dataset.from_json(os.path.join(args.industry_prediction_rebuttal_dir, "train.json")),
+            "test": datasets.Dataset.from_json(os.path.join(args.industry_prediction_rebuttal_dir, "test.json")),
+        })
         dataset = assign_industry_labels(dataset)
         dataset = dataset.map(partial(preprocess_text, sheets=args.sheets))
         dataset_train, dataset_val, dataset_test = split_industry_prediction_dataset(dataset, args.train_ratio)
@@ -283,6 +287,7 @@ def parse_args():
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--results_dir", type=str, default="results")
     parser.add_argument("--checkpoint_dir", type=str)
+    parser.add_argument("--industry_prediction_rebuttal_dir", type=str)
     parser.add_argument("--dataset_name", type=DatasetName, required=True)
     parser.add_argument("--sheets", type=str, nargs="+", default=["summary", "bs", "pl", "cf", "text"])
     parser.add_argument("--train_ratio", type=float, default=0.8)
