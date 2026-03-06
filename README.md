@@ -54,13 +54,12 @@ $ python src/edinet_bench/industry_prediction/make_leaderboard.py
 
 ## Citation
 ```
-@misc{sugiura2025edinet,
-  author={Issa Sugiura and Takashi Ishida and Taro Makino and Chieko Tazuke and Takanori Nakagawa and Kosuke Nakago and David Ha},
-  title={{EDINET-Bench: Evaluating LLMs on Complex Financial Tasks using Japanese Financial Statements}},
-  year={2025},
-  eprint={2506.08762},
-  archivePrefix={arXiv},
-  primaryClass={q-fin.ST},
-  url={https://arxiv.org/abs/2506.08762}, 
+@inproceedings{
+sugiura2026edinetbench,
+title={{EDINET}-Bench: Evaluating {LLM}s on Complex Financial Tasks using Japanese Financial Statements},
+author={Issa Sugiura and Takashi Ishida and Taro Makino and Chieko Tazuke and Takanori Nakagawa and Kosuke Nakago and David Ha},
+booktitle={The Fourteenth International Conference on Learning Representations},
+year={2026},
+url={https://openreview.net/forum?id=Dxns0cj15A}
 }
 ```
